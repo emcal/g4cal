@@ -1,0 +1,5 @@
+# written by 150_calibrate.py: global calibration from 5 GeV e- on p10x10 central crystal
+# fit: mu=4.94075+-0.00058 GeV, sigma=0.06760, n=19945
+response:
+  calibration:
+    global: 1.011992

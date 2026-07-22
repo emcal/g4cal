@@ -1,0 +1,64 @@
+# g4cal configuration. Same idiom as simulation-pipeline configs: one
+# self-contained YAML, per-stage blocks chained by ${...} interpolation.
+# Loaded by g4cal.config (G4CAL_CONFIG env var overrides this file's path;
+# configs/calib.yaml, written by scripts/150_calibrate.py, is merged on top).
+
+paths:
+  repo: /work/submodules/g4cal
+  data_root: /data/ilreco-work
+  store: ${paths.data_root}/store
+  tmp: ${paths.data_root}/tmp
+  logs: ${paths.data_root}/logs
+  build: ${paths.repo}/build
+  plots: ${paths.repo}/plots
+  reports: ${paths.repo}/reports
+  ilreco_profile: ${paths.repo}/data/prof_pwo.dat
+
+detector:
+  crystal_xy_mm: 20.55    # halld ECAL crystal (hdds CrystalECAL_HDDS.xml:140)
+  crystal_z_mm: 200.0
+  wrap_mm: 0.175          # Tedlar per lateral face, per hdds (REFERENCES.md #4)
+  pitch_mm: 20.9          # crystal_xy + 2*wrap = hdds lattice pitch
+  presets:
+    p3x3: {nx: 3, ny: 3}
+    p10x10: {nx: 10, ny: 10}
+    p100x100: {nx: 100, ny: 100}
+
+# response chain, all stages ON by default (REFERENCES.md; order: attenuate ->
+# threshold on attenuated -> en_scale -> smear)
+response:
+  attenuation: {enabled: true, lambda_mm: 2000.0, veff_mm_ns: 130.0}
+  smearing:
+    enabled: true
+    en_scale: 1.0962
+    meas: [0.0308, 0.010, 0.007]        # measured sigma_E/E model (validation reference)
+    intrinsic: [0.0171216, 0.0155070]   # intrinsic Geant part
+    thresh_att_gev: 0.005               # hitECAL 5 MeV, on attenuated unscaled energy
+  time: {enabled: false, sigma_ns: 0.4}
+  store_min_gev: 0.0001
+  calibration:
+    global: 1.0    # stage (d); overwritten via configs/calib.yaml by 150_calibrate.py
+
+reco:
+  block_threshold_gev: 0.0   # mcsmear 15 MeV block threshold is dead code -> off
+
+production:
+  energies_gev: [1, 2, 3, 5, 8, 12, 16, 20]
+  particles: [e-, gamma]
+  presets: [p3x3, p10x10]
+  gun_mode: central          # uniform over central crystal (halld-like conditions)
+  events_per_point: 10000
+  chunk_size: 2500
+  workers: 20
+  seed_base: 770000
+
+calibration_run:             # input for stage (d)
+  preset: p10x10
+  particle: e-
+  energy_gev: 5
+  n_events: 20000
+
+analysis:
+  fit_nsigma: 2.0            # iterative Gaussian fit clip window
+  fit_iterations: 4
+  min_events: 500

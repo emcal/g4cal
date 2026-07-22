@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Reconstruction half only: no Geant4 (multi-GB, slow to provision in CI).
+  # Exercises the ilreco FetchContent path and the adapter round-trip tests.
+  reco:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build calreco (sim off)
+        run: |
+          cmake -B build -DG4CAL_BUILD_SIM=OFF \
+            -DG4CAL_ILRECO_GIT=https://github.com/emcal/ilreco -DG4CAL_ILRECO_TAG=master
+          cmake --build build -j
+      - name: adapter tests
+        run: ctest --test-dir build --output-on-failure
+
+  # Analysis half: install the package, self-check the fitting/plot path on
+  # synthetic data, and publish the plot as an artifact.
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: install
+        run: uv venv .venv && uv pip install --python .venv -e .
+      - name: analysis self-check
+        run: .venv/bin/python scripts/ci_check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ci-plots
+          path: plots/ci/
