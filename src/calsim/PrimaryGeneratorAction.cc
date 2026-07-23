@@ -36,6 +36,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* evt) {
   } else if (fP.gun_mode == "central") {
     fX = cx0 + (G4UniformRand() - 0.5) * pitch;
     fY = cy0 + (G4UniformRand() - 0.5) * pitch;
+  } else if (fP.gun_mode == "point") {
+    fX = fP.gun_x_mm;
+    fY = fP.gun_y_mm;
   } else if (fP.gun_mode == "grid") {
     const int n = fP.grid_n;
     const long i = fCount % (long(n) * n);

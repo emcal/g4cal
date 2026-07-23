@@ -22,6 +22,7 @@ detector:
   presets:
     p3x3: {nx: 3, ny: 3}
     p10x10: {nx: 10, ny: 10}
+    p20x20: {nx: 20, ny: 20}
     p100x100: {nx: 100, ny: 100}
 
 # response chain, all stages ON by default (REFERENCES.md; order: attenuate ->

@@ -79,8 +79,8 @@ Addressing is 0-based `(ix, iy)` with `cell_id = iy*n_x + ix`. Physics list is
 `FTFP_BERT` with EM option 4 (`FTFP_BERT_EMZ`).
 
 The gun fires e-/gamma/pi-/mu- at 1–20 GeV **kinetic** energy, normal incidence,
-with three impact modes: uniform over the face, uniform over the central crystal, or
-a fixed scan grid.
+with four impact modes: uniform over the face, uniform over the central crystal, a
+fixed scan grid, or a fixed point (`--gun-mode point --gun-x <mm> --gun-y <mm>`).
 
 Per crystal the sim stores `edep_true` (Geant truth) and `e_vis` (after the response
 chain), so chain-ON vs chain-OFF can be compared offline without re-simulating. The

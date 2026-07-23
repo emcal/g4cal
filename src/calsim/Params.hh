@@ -18,8 +18,9 @@ struct Params {
   // gun
   std::string particle = "e-";
   double e_min_gev = 5.0, e_max_gev = 5.0;  // kinetic energy (G4 /gun/energy convention)
-  std::string gun_mode = "central";         // face | central | grid
+  std::string gun_mode = "central";         // face | central | grid | point
   int grid_n = 5;
+  double gun_x_mm = 0.0, gun_y_mm = 0.0;    // fixed impact for gun_mode=point
   int n_events = 100;
   long seed = 1;
 
@@ -63,6 +64,8 @@ struct Params {
       else if (k == "--energy")     { p.e_min_gev = p.e_max_gev = std::atof(v.c_str()); }
       else if (k == "--gun-mode")   p.gun_mode = v;
       else if (k == "--grid-n")     p.grid_n = std::atoi(v.c_str());
+      else if (k == "--gun-x")      p.gun_x_mm = std::atof(v.c_str());
+      else if (k == "--gun-y")      p.gun_y_mm = std::atof(v.c_str());
       else if (k == "--events")     p.n_events = std::atoi(v.c_str());
       else if (k == "--seed")       p.seed = std::atol(v.c_str());
       else if (k == "--out-dir")    p.out_dir = v;
@@ -97,6 +100,7 @@ struct Params {
       << "  \"particle\": \"" << particle << "\", \"e_min_gev\": " << e_min_gev
       << ", \"e_max_gev\": " << e_max_gev << ",\n"
       << "  \"gun_mode\": \"" << gun_mode << "\", \"grid_n\": " << grid_n
+      << ", \"gun_x_mm\": " << gun_x_mm << ", \"gun_y_mm\": " << gun_y_mm
       << ", \"direction\": [0, 0, 1],\n"
       << "  \"n_events\": " << n_events << ", \"seed\": " << seed << ",\n"
       << "  \"att_on\": " << (att_on ? "true" : "false")

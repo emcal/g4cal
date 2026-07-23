@@ -28,6 +28,7 @@ if(G4CAL_BUILD_SIM)
   add_executable(calsim ${CALSIM_SOURCES})
   target_link_libraries(calsim PRIVATE ${Geant4_LIBRARIES})
   target_include_directories(calsim PRIVATE ${Geant4_INCLUDE_DIRS})
+  install(TARGETS calsim RUNTIME DESTINATION bin)
 endif()
 
 # ---------------- ilreco + calreco ----------------
@@ -63,9 +64,10 @@ if(G4CAL_BUILD_RECO)
   # calreco: array size is runtime configuration (--nx/--ny); the calreco_NxN
   # binaries are identical and kept only so production scripts' paths stay valid.
   enable_testing()
-  foreach(N 3 10 100)
+  foreach(N 3 10 20 100)
     add_executable(calreco_${N}x${N} ${CMAKE_CURRENT_SOURCE_DIR}/src/calreco/reco_main.cc)
     target_link_libraries(calreco_${N}x${N} PRIVATE calreco_lib)
+    install(TARGETS calreco_${N}x${N} RUNTIME DESTINATION bin)
 
     add_executable(test_adapter_${N} ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/test_adapter.cc)
     target_compile_definitions(test_adapter_${N} PRIVATE TEST_GRID_N=${N})
