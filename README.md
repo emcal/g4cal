@@ -76,7 +76,10 @@ One parametric geometry: an `n_x × n_y` array of PbWO4 crystals, 20.55 mm squar
 200 mm long, 0.175 mm Tedlar wrap per lateral face (20.9 mm pitch), from the HallD
 ECAL / hdds geometry. Beam along +z, origin at the array center; mm / GeV / ns.
 Addressing is 0-based `(ix, iy)` with `cell_id = iy*n_x + ix`. Physics list is
-`FTFP_BERT` with EM option 4 (`FTFP_BERT_EMZ`).
+`FTFP_BERT` with EM option 4 (`FTFP_BERT_EMZ`). `--hadronic off` disables the
+gamma/electro/muon-nuclear processes — for gamma/e- primaries that makes the
+shower purely electromagnetic (used for profile tables); recorded as `hadronic_on`
+in `run.json`.
 
 The gun fires e-/gamma/pi-/mu- at 1–20 GeV **kinetic** energy, normal incidence,
 with four impact modes: uniform over the face, uniform over the central crystal, a

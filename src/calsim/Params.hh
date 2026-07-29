@@ -41,6 +41,10 @@ struct Params {
   bool   time_on    = false;
   double t_sigma_ns = 0.4;         // ECALSmearer.cc:26
 
+  // physics: --hadronic off disables gamma/electro/muon-nuclear, the only
+  // EM->hadronic doorway for gamma/e- primaries (EM-only showers, profile tables)
+  bool hadronic_on = true;
+
   bool check_overlaps = false;
 
   double pitch_mm() const { return crystal_xy_mm + 2.0 * wrap_mm; }
@@ -84,6 +88,7 @@ struct Params {
       else if (k == "--store-min")  p.store_min_gev = std::atof(v.c_str());
       else if (k == "--time")       p.time_on = parseBool(v);
       else if (k == "--t-sigma")    p.t_sigma_ns = std::atof(v.c_str());
+      else if (k == "--hadronic")   p.hadronic_on = parseBool(v);
       else if (k == "--check-overlaps") p.check_overlaps = parseBool(v);
       else { std::cerr << "calsim: unknown option " << k << "\n"; std::exit(2); }
     }
@@ -112,7 +117,8 @@ struct Params {
       << "  \"thresh_att_gev\": " << thresh_att_gev
       << ", \"store_min_gev\": " << store_min_gev << ",\n"
       << "  \"time_on\": " << (time_on ? "true" : "false")
-      << ", \"t_sigma_ns\": " << t_sigma_ns << "\n"
+      << ", \"t_sigma_ns\": " << t_sigma_ns << ",\n"
+      << "  \"hadronic_on\": " << (hadronic_on ? "true" : "false") << "\n"
       << "}\n";
     return o.str();
   }

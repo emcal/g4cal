@@ -40,6 +40,13 @@ int main(int argc, char** argv) {
                         "/process/had/verbose 0"})
     ui->ApplyCommand(c);
 
+  // must be applied before Initialize(): flags are read when processes are built
+  if (!p.hadronic_on)
+    for (const char* c : {"/physics_list/em/GammaNuclear false",
+                          "/physics_list/em/ElectroNuclear false",
+                          "/physics_list/em/MuonNuclear false"})
+      ui->ApplyCommand(c);
+
   rm->Initialize();
   rm->BeamOn(p.n_events);
 
