@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from g4cal import plotstyle
 from g4cal.config import load_config
 from g4cal.store import store_glob
-from g4cal.fitting import fit_gauss_iterative, fit_resolution, resolution_model
+from g4cal.fitting import fit_gauss_iterative, fit_resolution, resolution_model, res_terms
 
 
 def energy_points(cfg, preset, particle, energy, column):
@@ -70,8 +70,8 @@ def fmt_abc(popt, perr, chi2, ndf):
 
 
 def one_figure(cfg, preset, particle, results, out_png):
-    meas = list(cfg.response.smearing.meas)
-    intr = list(cfg.response.smearing.intrinsic) + [0.0]
+    meas = res_terms(cfg.response.smearing.measured_res)
+    intr = res_terms(cfg.response.smearing.intrinsic_res)
     Ec = np.linspace(0.8, 21, 300)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
@@ -117,7 +117,7 @@ def overlay_figure(cfg, res3, res10, out_png):
                 label.split(" (")[0] + ":\n" + fmt_abc(popt, perr, chi2, ndf),
                 transform=ax.transAxes, ha="right", va="top", fontsize=8,
                 color=color, bbox=dict(boxstyle="round", fc="white", ec="#cccccc"))
-    ax.plot(Ec, 100 * resolution_model(Ec, *list(cfg.response.smearing.meas)), "--",
+    ax.plot(Ec, 100 * resolution_model(Ec, *res_terms(cfg.response.smearing.measured_res)), "--",
             color=plotstyle.C_REF, label="measured PbWO4 model (halld)")
     ax.set_xlabel("kinetic energy [GeV]")
     ax.set_ylabel(r"$\sigma_E/E$ [%]")
@@ -175,8 +175,8 @@ def main():
                        "energy_resolution_3x3_vs_10x10_e-.png")
 
     all_fits["reference"] = {
-        "measured": list(map(float, cfg.response.smearing.meas)),
-        "intrinsic": list(map(float, cfg.response.smearing.intrinsic)),
+        "measured": res_terms(cfg.response.smearing.measured_res),
+        "intrinsic": res_terms(cfg.response.smearing.intrinsic_res),
     }
     (reports / "resolution_fits.json").write_text(json.dumps(all_fits, indent=1))
     print(f"wrote {reports / 'resolution_fits.json'} and figures in {plots}")

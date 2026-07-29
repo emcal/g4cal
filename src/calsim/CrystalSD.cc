@@ -16,17 +16,17 @@ G4bool CrystalSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
   const G4ThreeVector mid = 0.5 * (pre->GetPosition() + post->GetPosition());
   // local frame of the crystal volume: z in [-crystal_z/2, +crystal_z/2]
   const G4ThreeVector local = touch->GetHistory()->GetTopTransform().TransformPoint(mid);
-  const double dist = 0.5 * fP.crystal_z_mm * mm - local.z();   // to back (readout) face
+  const double dist = 0.5 * fP.crystal_length_mm * mm - local.z();   // to back (readout) face
 
   double w = 1.0;
-  if (fP.att_on) w = std::exp(-dist / (fP.lambda_mm * mm));
+  if (fP.attenuation_on) w = std::exp(-dist / (fP.atten_length_mm * mm));
 
   auto& h = fHits[cell];
   h.edep += edep;
   h.eatt += edep * w;
-  if (fP.time_on) {
+  if (fP.timing_on) {
     const double t = 0.5 * (pre->GetGlobalTime() + post->GetGlobalTime())
-                     + dist / (fP.veff_mm_ns * mm / ns);
+                     + dist / (fP.light_speed_mm_ns * mm / ns);
     h.twsum += t * edep * w;
   }
   return true;

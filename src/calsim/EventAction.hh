@@ -8,7 +8,7 @@ class PrimaryGeneratorAction;
 class RunAction;
 class DetectorConstruction;
 
-// End of event: apply response stages (threshold on attenuated energy -> en_scale ->
+// End of event: apply response stages (threshold on attenuated energy -> energy_scale ->
 // mcsmear-style smearing) and write the hit and truth CSV rows.
 class EventAction : public G4UserEventAction {
 public:

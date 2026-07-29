@@ -83,22 +83,86 @@ in `run.json`.
 
 The gun fires e-/gamma/pi-/mu- at 1–20 GeV **kinetic** energy, normal incidence,
 with four impact modes: uniform over the face, uniform over the central crystal, a
-fixed scan grid, or a fixed point (`--gun-mode point --gun-x <mm> --gun-y <mm>`).
+fixed scan grid, or a fixed point (`--gun-mode point --gun-x-mm <mm> --gun-y-mm <mm>`).
 
-Per crystal the sim stores `edep_true` (Geant truth) and `e_vis` (after the response
-chain), so chain-ON vs chain-OFF can be compared offline without re-simulating. The
-chain, each stage a config knob, all ON by default:
+Geant4 simulates the physical shower itself (every track and energy deposit). On top
+of that, a per-crystal **response chain** emulates what the real detector does to
+that deposited energy — the effects Geant4 does not model: light collection,
+readout sparsification, photostatistics/electronics fluctuations. Per crystal the
+sim stores both `edep_true` (Geant truth, no chain) and `e_vis` (after the chain),
+so chain-ON vs chain-OFF can be compared offline without re-simulating. The stages,
+in order, each behind a flag, all ON by default:
 
-- **attenuation** — `edep * exp(-dist/λ)`, λ = 200 cm (HallD `hitECAL.c`);
-- **threshold** — 5 MeV on the attenuated energy;
-- **energy scale** — 1.0962 (HallD `ECALSmearer`), before smearing;
-- **smearing** — extra per-hit Gaussian equal to the quadrature difference between
-  the measured resolution model and the intrinsic Geant part;
-- **time** — off by default.
+- **attenuation** (`--attenuation`, `--atten-length-mm`) — light collection model,
+  applied per Geant4 step in `CrystalSD`: `e_att = Σ edep · exp(−dist/λ)` where
+  `dist` is the distance from the step to the back (readout) face, λ = 200 cm
+  (HallD `hitECAL.c`). Light born deeper in the crystal attenuates less; this is a
+  deterministic geometry-dependent weighting, not a random smear. With
+  `--attenuation off`, `e_att = edep`.
+- **threshold** (`--hit-threshold-gev`) — readout sparsification: a cell with
+  attenuated energy below 5 MeV reads exactly zero (the `p0` zeros in the LL
+  profile tables come from here).
+- **energy scale** (`--energy-scale`) — multiply by 1.0962 (HallD `ECALSmearer`) to
+  undo the *average* light loss from attenuation, so the energy scale is right on
+  average while the event-by-event attenuation fluctuations survive.
+- **smearing** (`--smearing`, `--measured-res-*`, `--intrinsic-res-*`) — the random
+  part, in `EventAction`. A Geant4 shower fluctuates only with the *intrinsic*
+  resolution (leakage, attenuation sampling); the real detector also has
+  photostatistics, PMT gain and noise fluctuations, so its *measured* resolution is
+  wider. Each cell's energy is multiplied by `1 + Gauss(0, σ)` with
+  `σ² = measured_res²(E) − intrinsic_res²(E)`, evaluated term by term of
+  σ/E = √(stochastic²/E + noise²/E² + constant²) at that cell's own energy.
+  Injecting only the quadrature *difference* (independent variances add) lands the
+  total simulated resolution on the measured HallD curve without double-counting
+  what Geant4 already fluctuates. Note: `--smearing off` also disables the energy
+  scale — it yields attenuated raw energy (`edep_true` is the column with no chain
+  at all).
+- **time** (`--timing`, `--time-sigma-ns`) — optional `t_vis`: energy-weighted mean
+  arrival time incl. light propagation at `--light-speed-mm-ns`, plus a 0.4 ns
+  Gaussian; off by default.
 
 Constants and citations are in [REFERENCES.md](REFERENCES.md). A single global
 **calibration constant** (response stage d) removes the attenuation bias; it lives in
 `configs/calib.yaml`, written by `scripts/150_calibrate.py`.
+
+### calsim options
+
+All flags take a value (`--flag value`); booleans accept `on/off` (also `1/true/yes`).
+Lengths in mm, energies in GeV, times in ns. Resolution terms follow
+σ/E = √(stochastic²/E + noise²/E² + constant²).
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--crystals-nx` / `--crystals-ny` | 3 / 3 | grid size in crystals |
+| `--crystal-side-mm` | 20.55 | square crystal side |
+| `--crystal-length-mm` | 200.0 | crystal length |
+| `--wrap-thickness-mm` | 0.175 | Tedlar wrap per lateral face (0 = no wrap volume) |
+| `--particle` | e- | gun particle (e-, gamma, pi-, mu-, ...) |
+| `--energy-min-gev` / `--energy-max-gev` | 5.0 / 5.0 | kinetic energy range (uniform) |
+| `--energy-gev` | — | shorthand: sets min and max to the same value |
+| `--gun-mode` | central | `face` \| `central` \| `grid` \| `point` |
+| `--gun-grid-n` | 5 | scan points per axis for gun-mode=grid |
+| `--gun-x-mm` / `--gun-y-mm` | 0 / 0 | fixed impact for gun-mode=point |
+| `--events` | 100 | number of events |
+| `--seed` | 1 | random seed |
+| `--hadronic` | on | gamma/electro/muon-nuclear on/off; `off` = pure EM shower for gamma/e- (profile tables) |
+| `--out-dir` | . | output directory (hits.csv, events.csv, run.json) |
+| `--run-id` | test | run tag written into run.json |
+| `--attenuation` | on | light-attenuation stage |
+| `--atten-length-mm` | 2000.0 | light attenuation length in the crystal |
+| `--light-speed-mm-ns` | 130.0 | effective light speed, used for hit timing |
+| `--smearing` | on | smearing stage (energy scale + extra Gaussian) |
+| `--energy-scale` | 1.0962 | scale applied before smearing |
+| `--measured-res-stochastic` | 0.0308 | target (measured halld ECAL) resolution, stochastic term |
+| `--measured-res-noise` | 0.010 | ... noise term |
+| `--measured-res-constant` | 0.007 | ... constant term |
+| `--intrinsic-res-stochastic` | 0.0171216 | intrinsic Geant4 resolution, stochastic term |
+| `--intrinsic-res-noise` | 0.0155070 | ... noise term |
+| `--hit-threshold-gev` | 0.005 | sparsification threshold, on attenuated unscaled energy |
+| `--store-min-gev` | 0.0001 | store hit if edep_true above this (or e_vis > 0) |
+| `--timing` | off | timing simulation (adds t_vis column) |
+| `--time-sigma-ns` | 0.4 | time smearing sigma |
+| `--check-overlaps` | off | Geant4 geometry overlap check |
 
 ## Data store
 

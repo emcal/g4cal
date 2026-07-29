@@ -20,18 +20,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
   tedlar->AddElement(nist->FindOrBuildElement("F"), 1);
 
   const double pitch = fP.pitch_mm() * mm;
-  const double cxy   = fP.crystal_xy_mm * mm;
-  const double cz    = fP.crystal_z_mm * mm;
+  const double cxy   = fP.crystal_side_mm * mm;
+  const double cz    = fP.crystal_length_mm * mm;
 
-  const double worldHx = 0.5 * fP.nx * pitch + 100. * mm;
-  const double worldHy = 0.5 * fP.ny * pitch + 100. * mm;
+  const double worldHx = 0.5 * fP.crystals_nx * pitch + 100. * mm;
+  const double worldHy = 0.5 * fP.crystals_ny * pitch + 100. * mm;
   const double worldHz = 0.5 * cz + 400. * mm;
 
   auto* worldS  = new G4Box("world", worldHx, worldHy, worldHz);
   auto* worldLV = new G4LogicalVolume(worldS, air, "world");
   auto* worldPV = new G4PVPlacement(nullptr, {}, worldLV, "world", nullptr, false, 0);
 
-  const bool haveWrap = fP.wrap_mm > 0.;
+  const bool haveWrap = fP.wrap_thickness_mm > 0.;
   G4LogicalVolume* moduleLV = nullptr;
   if (haveWrap) {
     auto* moduleS = new G4Box("module", 0.5 * pitch, 0.5 * pitch, 0.5 * cz);
@@ -47,11 +47,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     fCopyDepth = 0;
   }
 
-  for (int iy = 0; iy < fP.ny; ++iy) {
-    for (int ix = 0; ix < fP.nx; ++ix) {
-      const double x = (ix - 0.5 * (fP.nx - 1)) * pitch;
-      const double y = (iy - 0.5 * (fP.ny - 1)) * pitch;
-      const int cell = iy * fP.nx + ix;
+  for (int iy = 0; iy < fP.crystals_ny; ++iy) {
+    for (int ix = 0; ix < fP.crystals_nx; ++ix) {
+      const double x = (ix - 0.5 * (fP.crystals_nx - 1)) * pitch;
+      const double y = (iy - 0.5 * (fP.crystals_ny - 1)) * pitch;
+      const int cell = iy * fP.crystals_nx + ix;
       new G4PVPlacement(nullptr, {x, y, 0.}, moduleLV, "module", worldLV, false, cell,
                         fP.check_overlaps);
     }

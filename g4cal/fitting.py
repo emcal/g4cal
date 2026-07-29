@@ -36,8 +36,15 @@ def fit_gauss_iterative(values, nsigma=2.0, iterations=4, bins=80):
     return mu, sig, perr[1], perr[2]
 
 
-def resolution_model(E, a, b, c):
-    return np.sqrt(a**2 / E + b**2 / E**2 + c**2)
+def resolution_model(E, stochastic, noise, constant):
+    """sigma_E/E as a function of E [GeV]: standard calorimeter three-term model."""
+    return np.sqrt(stochastic**2 / E + noise**2 / E**2 + constant**2)
+
+
+def res_terms(res_cfg):
+    """[stochastic, noise, constant] for resolution_model from a config measured_res /
+    intrinsic_res block; blocks without a constant term (intrinsic_res) get 0."""
+    return [float(res_cfg.stochastic), float(res_cfg.noise), float(res_cfg.get("constant", 0.0))]
 
 
 def fit_resolution(E, res, res_err):

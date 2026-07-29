@@ -8,8 +8,8 @@
 
 // Particle gun, normal incidence (+z), kinetic energy in GeV.
 // Impact modes: face (uniform over full array face), central (uniform over the
-// central crystal, cell (nx/2, ny/2)), grid (fixed grid_n x grid_n scan over the
-// central crystal, cycled event by event), point (fixed impact at gun_x/gun_y mm).
+// central crystal, cell (nx/2, ny/2)), grid (fixed gun_grid_n x gun_grid_n scan over
+// the central crystal, cycled event by event), point (fixed impact at gun_x/gun_y mm).
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 public:
   explicit PrimaryGeneratorAction(const Params& p);

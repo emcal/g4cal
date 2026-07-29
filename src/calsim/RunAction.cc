@@ -11,7 +11,7 @@ void RunAction::BeginOfRunAction(const G4Run*) {
     std::exit(3);
   }
   fHits << "event,ix,iy,edep_true,e_vis";
-  if (fP.time_on) fHits << ",t_vis";
+  if (fP.timing_on) fHits << ",t_vis";
   fHits << "\n";
   fEvents << "event,pdg,ekin,x,y,dx,dy,dz\n";
 }

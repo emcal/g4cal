@@ -35,7 +35,7 @@ class Job:
     n_events: int
     seed: int
     cal: float = 1.0
-    extra_calsim_args: list = field(default_factory=list)  # e.g. ["--att","off"]
+    extra_calsim_args: list = field(default_factory=list)  # e.g. ["--attenuation", "off"]
 
 
 PARTICLE_TAGS = {"e-": "em", "gamma": "g", "pi-": "pim", "mu-": "mum"}
@@ -61,25 +61,29 @@ def run_job(job: Job, cfg) -> str:
 
     calsim_cmd = [
         f"{cfg.paths.build}/calsim",
-        "--nx", str(job.nx), "--ny", str(job.ny),
-        "--crystal-xy", str(cfg.detector.crystal_xy_mm),
-        "--crystal-z", str(cfg.detector.crystal_z_mm),
-        "--wrap", str(cfg.detector.wrap_mm),
+        "--crystals-nx", str(job.nx), "--crystals-ny", str(job.ny),
+        "--crystal-side-mm", str(cfg.detector.crystal_side_mm),
+        "--crystal-length-mm", str(cfg.detector.crystal_length_mm),
+        "--wrap-thickness-mm", str(cfg.detector.wrap_thickness_mm),
         "--particle", job.particle,
-        "--e-min", str(job.e_min), "--e-max", str(job.e_max),
+        "--energy-min-gev", str(job.e_min), "--energy-max-gev", str(job.e_max),
         "--gun-mode", job.gun_mode,
         "--events", str(job.n_events), "--seed", str(job.seed),
         "--out-dir", str(tmp), "--run-id", job.run_id,
-        "--att", "on" if r.attenuation.enabled else "off",
-        "--lambda", str(r.attenuation.lambda_mm), "--veff", str(r.attenuation.veff_mm_ns),
-        "--smear", "on" if r.smearing.enabled else "off",
-        "--en-scale", str(r.smearing.en_scale),
-        "--meas-a", str(r.smearing.meas[0]), "--meas-b", str(r.smearing.meas[1]),
-        "--meas-c", str(r.smearing.meas[2]),
-        "--intr-a", str(r.smearing.intrinsic[0]), "--intr-b", str(r.smearing.intrinsic[1]),
-        "--thresh-att", str(r.smearing.thresh_att_gev),
-        "--store-min", str(r.store_min_gev),
-        "--time", "on" if r.time.enabled else "off", "--t-sigma", str(r.time.sigma_ns),
+        "--attenuation", "on" if r.attenuation.enabled else "off",
+        "--atten-length-mm", str(r.attenuation.length_mm),
+        "--light-speed-mm-ns", str(r.attenuation.light_speed_mm_ns),
+        "--smearing", "on" if r.smearing.enabled else "off",
+        "--energy-scale", str(r.smearing.energy_scale),
+        "--measured-res-stochastic", str(r.smearing.measured_res.stochastic),
+        "--measured-res-noise", str(r.smearing.measured_res.noise),
+        "--measured-res-constant", str(r.smearing.measured_res.constant),
+        "--intrinsic-res-stochastic", str(r.smearing.intrinsic_res.stochastic),
+        "--intrinsic-res-noise", str(r.smearing.intrinsic_res.noise),
+        "--hit-threshold-gev", str(r.smearing.hit_threshold_gev),
+        "--store-min-gev", str(r.store_min_gev),
+        "--timing", "on" if r.time.enabled else "off",
+        "--time-sigma-ns", str(r.time.sigma_ns),
     ] + list(job.extra_calsim_args)
 
     reco_base = [
